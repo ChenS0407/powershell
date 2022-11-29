@@ -23,8 +23,8 @@ def parse_requirements():
 
 if __name__ == "__main__":
     setup(
-        version="1.0.0",
-        name="demo",
+        version="3.0.0",
+        name="chens",
         description="",
 
         cmdclass={},
@@ -32,7 +32,7 @@ if __name__ == "__main__":
         package_data={'': ['*.txt', '*.TXT', '*.JS', 'test/*']},
         install_requires=parse_requirements(),
 
-        entry_points={'console_scripts': ['demo = demo.command_line:main']},
+        entry_points={'console_scripts': ['chens = chens.command_line:main']},
 
         author="test",
         author_email="test@xxx.com",

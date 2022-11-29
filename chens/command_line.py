@@ -5,7 +5,13 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import python_atom_sdk as sdk
+
 from .error_code import ErrorCode
+
+# 导入执行系统命令的方法
+import subprocess
+import os
+import random
 
 err_code = ErrorCode()
 
@@ -57,7 +63,6 @@ def exit_with_succ(data=None, quality_data=None, msg="run succ"):
 
     sdk.set_output(output_data)
 
-    sdk.log.info("finish")
     exit(err_code.OK)
 
 
@@ -65,29 +70,43 @@ def main():
     """
     @summary: main
     """
-    sdk.log.info("enter main")
 
-    # 输入
-    input_params = sdk.get_input()
+    # 获取前端输入,根据名称获取
+    input_bash = sdk.get_input().get("chens_input1", None)
 
-    # 获取名为input_demo的输入字段值
-    input_demo = input_params.get("input_demo", None)
-    sdk.log.info("input_demo is {}".format(input_demo))
-    if not input_demo:
-        exit_with_error(error_type=sdk.output_error_type.USER,
-                        error_code=err_code.USER_CONFIG_ERROR,
-                        error_msg="input_demo is None")
+    # 获取单选框输入
+    input_checkbox = sdk.get_input().get("checkbox_lang", None)
 
-    # 插件逻辑
-    sdk.log.info("Hello world!")
+    # 获取工作空间
+    workspace = sdk.get_workspace()
 
-    # 插件执行结果、输出数据
-    data = {
-        "output_demo": {
-            "type": sdk.output_field_type.STRING,
-            "value": "test output"
-        }
-    }
-    exit_with_succ(data=data)
+    # 切换 python 工作目录
+    os.chdir(workspace)
+
+    # 随机生成一个文件，写入脚本内容
+    random_num = random.randint(1111, 9999)
+    file_name = "devops_%s.sh" % random_num
+    with open(file_name, 'wb') as fp:
+        fp.write(input_bash)
+
+    res = subprocess.Popen('bash -e %s' % file_name, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # 标准输出
+    stdout = res.stdout.read()
+    sdk.log.info(stdout)
+
+    # 错误输出
+    stderr = res.stderr.read()
+    sdk.log.error(stderr)
+
+    # 执行完毕之后清除生成的临时脚本
+    os.remove(file_name)
+
+    # 如果报错输出中有内容，则使用 exit_err
+    if stderr:
+        exit_with_error(error_code=2199004,
+                        error_type=1)
+
+    exit_with_succ()
 
     exit(0)
