@@ -72,9 +72,9 @@ def main():
     """
 
     # 获取前端输入,根据名称获取
-    input_bash = sdk.get_input().get("chens_input1", None)
+    input_pwsh = sdk.get_input().get("powershell_input", None)
 
-    # 获取单选框输入
+    # 获取单选框输入,目前就一个选项,暂时没什么用
     input_checkbox = sdk.get_input().get("checkbox_lang", None)
 
     # 获取工作空间
@@ -84,19 +84,20 @@ def main():
     os.chdir(workspace)
 
     # 随机生成一个文件，写入脚本内容
-    random_num = random.randint(1111, 9999)
-    file_name = "devops_%s.sh" % random_num
-    with open(file_name, 'wb') as fp:
-        fp.write(input_bash)
+    random_num = random.randint(11111, 99999)
+    file_name = "devops_%s.ps1" % random_num
+    with open(file_name, 'w') as fp:
+        fp.write(input_pwsh)
 
-    res = subprocess.Popen('bash -e %s' % file_name, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    res = subprocess.Popen('pwsh  -NoProfile -ExecutionPolicy Bypass -NoLogo -NonInteractive %s -Command' % file_name,
+                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # 标准输出
-    stdout = res.stdout.read()
+    stdout = res.stdout.read().decode()
     sdk.log.info(stdout)
 
     # 错误输出
-    stderr = res.stderr.read()
+    stderr = res.stderr.read().decode()
     sdk.log.error(stderr)
 
     # 执行完毕之后清除生成的临时脚本

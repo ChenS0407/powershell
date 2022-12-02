@@ -1,0 +1,44 @@
+{
+    "atomCode": "powershell",
+    "execution": {
+        "packagePath": "powershell-1.0.0.tar.gz",
+        "language": "python",
+        "demands": [
+            "pip install powershell-1.0.0.tar.gz"
+        ],
+        "target": "powershell"
+    },
+
+
+    "input": {
+        "checkbox_lang": {
+            "label": "Type",
+            "default": "powershell",
+            "type": "enum-input",
+            "desc": "选择代码语言",
+            "required": true,
+            "list": [
+                {
+                    "value": "powershell",
+                    "label": "powershell"
+                }
+            ]
+        },
+
+
+        "powershell_input": {
+            "label": "Content",
+            "type": "atom-ace-editor",
+            "desc": "参数描述",
+            "default": "",
+            "required": true
+        }
+    },
+    "output": {
+        "output_demo": {
+            "description" : "输出示例",
+            "type": "string",
+            "isSensitive": false
+        }
+    }
+}

@@ -1,3 +1,0 @@
-[console_scripts]
-chens = chens.command_line:main
-
