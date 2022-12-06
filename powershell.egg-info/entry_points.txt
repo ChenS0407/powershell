@@ -1,3 +1,0 @@
-[console_scripts]
-powershell = powershell.command_line:main
-
