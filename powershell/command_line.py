@@ -24,7 +24,9 @@ def exit_with_error(error_type=None, error_code=None, error_msg="failed", platfo
         error_type = sdk.OutputErrorType.PLUGIN
     if not error_code:
         error_code = err_code.PLUGIN_ERROR
-    sdk.log.error("error_type: {}, error_code: {}, error_msg: {}".format(error_type, error_code, error_msg))
+
+    # 不设置错误日志输出，否则会输出两次
+    # sdk.log.error("error_type: {}, error_code: {}, error_msg: {}".format(error_type, error_code, error_msg))
 
     output_data = {
         "status": sdk.status.FAILURE,
@@ -35,6 +37,7 @@ def exit_with_error(error_type=None, error_code=None, error_msg="failed", platfo
         "platformCode": platform_code,
         "platformErrorCode": platform_error_code
     }
+
     sdk.set_output(output_data)
 
     exit(error_code)
@@ -74,6 +77,12 @@ def main():
     # 获取前端输入,根据名称获取
     input_pwsh = sdk.get_input().get("powershell_input", None)
 
+    sdk.log.info("execute scripts is \n{}".format(input_pwsh))
+    sdk.log.info("-----")
+    if not input_pwsh:
+        exit_with_error(error_type=sdk.output_error_type.USER,
+                        error_code=err_code.USER_CONFIG_ERROR,
+                        error_msg="input scripts is None")
     # 获取单选框输入,目前就一个选项,暂时没什么用
     input_checkbox = sdk.get_input().get("checkbox_lang", None)
 
@@ -86,7 +95,12 @@ def main():
     # 随机生成一个文件，写入脚本内容
     random_num = random.randint(11111, 99999)
     file_name = "devops_%s.ps1" % random_num
-    with open(file_name, 'w') as fp:
+
+    # 拼接文件绝对路径，如果文件已存在，删除文件
+    script_file = os.path.join(workspace, file_name)
+    if os.path.exists(script_file):
+        os.remove(script_file)
+    with open(file_name, 'w', encoding="utf8") as fp:
         fp.write(input_pwsh)
 
     res = subprocess.Popen('pwsh  -NoProfile -ExecutionPolicy Bypass -NoLogo -NonInteractive %s -Command' % file_name,
@@ -94,20 +108,32 @@ def main():
 
     # 标准输出
     stdout = res.stdout.read().decode()
-    sdk.log.info(stdout)
+    # sdk.log.info(stdout)
 
     # 错误输出
     stderr = res.stderr.read().decode()
-    sdk.log.error(stderr)
+    # sdk.log.error(stderr)
 
     # 执行完毕之后清除生成的临时脚本
     os.remove(file_name)
 
     # 如果报错输出中有内容，则使用 exit_err
     if stderr:
-        exit_with_error(error_code=2199004,
-                        error_type=1)
+        sdk.log.info(stdout)
+        exit_with_error(
+            error_type=sdk.output_error_type.USER,
+            error_code=err_code.USER_CONFIG_ERROR,
+            error_msg="{}".format(stderr)
+        )
 
-    exit_with_succ()
+    # 拼接 data
+    data = {
+        "scripts result":
+            {
+                "type": sdk.output_field_type.STRING,
+                "value": "\n %s" % stdout
+            }
+    }
 
-    exit(0)
+    # exit_with_succ(data=stdout)
+    exit_with_succ(data=data)
